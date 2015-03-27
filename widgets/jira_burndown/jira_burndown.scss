@@ -1,0 +1,35 @@
+// ----------------------------------------------------------------------------
+// Widget-jira-burndown styles
+// ----------------------------------------------------------------------------
+.widget-jira-burndown {
+
+  position: relative;
+
+  svg {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+  }
+
+  .c3-line {
+    stroke-width: 3px;
+  }
+
+  .graphContainer {
+    position: absolute !important;
+    left: 0px;
+    top: 0px;
+  }
+
+  .more-info {
+    color: rgba(0, 0, 0, 0.8);
+    font-weight: 600;
+    font-size: 20px;
+    margin-top: 0;
+  }
+
+  .updated-at {
+    color: rgba(0, 0, 0, 0.3);
+  }
+
+}
