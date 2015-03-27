@@ -7,7 +7,7 @@ Jira burndown plugin for dashing
 
 Example of a burndown:
 
-![Image](../blob/master/jira_burndown.png?raw=true)
+![Image](../master/jira_burndown.png?raw=true)
 
 ## Installation
 
