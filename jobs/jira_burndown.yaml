@@ -1,0 +1,7 @@
+---
+:jira_url: http://my.jira.server
+:username: myUserName
+:password: myPassword
+:numberOfSprintsToShow: 3
+:sprint_mapping:
+  myBurndown: 123

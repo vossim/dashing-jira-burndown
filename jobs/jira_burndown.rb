@@ -4,15 +4,20 @@ require 'cgi'
 require 'json'
 require 'time'
 
-CONFIG = {
-  jira_url: "",
-  username:  "",
-  password: "",
-  numberOfSprintsToShow: 3,
-  sprint_mapping: {
-    'myBurndown' => 0 
+yamlFile = "./jobs/jira_burndown.yaml"
+if File.exist?(yamlFile)
+  CONFIG = YAML.load(File.new(yamlFile, "r").read)
+else
+  CONFIG = {
+    jira_url: "",
+    username:  "",
+    password: "",
+    numberOfSprintsToShow: 1,
+    sprint_mapping: {
+      'myBurndown' => 0 
+    }
   }
-}
+end
 
 class SprintJsonDownloader
   def initialize(urlPrefix, username, password)
