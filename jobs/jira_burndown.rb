@@ -31,7 +31,9 @@ class SprintJsonDownloader
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = uri.scheme == 'https'
     request = Net::HTTP::Get.new(uri.request_uri)
-    request.basic_auth(@username, @password)
+    if !@username.nil? && !@username.empty?
+      request.basic_auth(@username, @password)
+    end
     JSON.parse(http.request(request).body)
   end
 
