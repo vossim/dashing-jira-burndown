@@ -15,7 +15,7 @@ Example of a burndown:
 
 Put the files `jira_burndown.coffee`, `jira_burndown.html` and `jira_burndown.scss` in the `/widget/jira_burndown` directory and the files `jira_burndown.rb` and (optionally) `jira_burndown.yaml` in the `/jobs` directory
 
-You also need the `c3.min.js` and `d3.min.js` in the `/assets/javascripts` directory and the `c3.min.css` file in the `/assets/stylesheets` directory.
+You also need the `c3.min.js` and `d3.min.js` files in the `/assets/javascripts` directory and the `c3.min.css` file in the `/assets/stylesheets` directory.
 
 ## Job configuration
 
