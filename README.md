@@ -3,6 +3,8 @@ Jira burndown plugin for dashing
 
 ## Description
 
+GitHub location: https://github.com/vossim/dashing-jira-burndown
+
 [Dashing](http://shopify.github.com/dashing) widget to display a [Jira](https://www.atlassian.com/software/jira) (greenhopper) burn-down, rotating the last X sprints for a specific rapidView (where X is configurable)
 
 Example of a burndown:
