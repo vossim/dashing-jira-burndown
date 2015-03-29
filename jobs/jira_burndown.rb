@@ -6,9 +6,9 @@ require 'time'
 
 yamlFile = "./jobs/jira_burndown.yaml"
 if File.exist?(yamlFile)
-  CONFIG = YAML.load(File.new(yamlFile, "r").read)
+  JIRA_CONFIG = YAML.load(File.new(yamlFile, "r").read)
 else
-  CONFIG = {
+  JIRA_CONFIG = {
     jira_url: "",
     username:  "",
     password: "",
@@ -161,11 +161,11 @@ class BurnDownBuilder
   end
 end
 
-CONFIG[:sprint_mapping].each do |mappingName, rapidViewId|
+JIRA_CONFIG[:sprint_mapping].each do |mappingName, rapidViewId|
   sprintIndex = 0
   SCHEDULER.every '10s', :first_in => 0 do
-    downloader = SprintJsonDownloader.new(CONFIG[:jira_url], CONFIG[:username], CONFIG[:password])
-    sprintOverview = SprintOverviewJsonReader.new(downloader.sprintOverview(rapidViewId), CONFIG[:numberOfSprintsToShow]).getSprintOverview(sprintIndex)
+    downloader = SprintJsonDownloader.new(JIRA_CONFIG[:jira_url], JIRA_CONFIG[:username], JIRA_CONFIG[:password])
+    sprintOverview = SprintOverviewJsonReader.new(downloader.sprintOverview(rapidViewId), JIRA_CONFIG[:numberOfSprintsToShow]).getSprintOverview(sprintIndex)
     sprintName = sprintOverview["name"]
     sprintId = sprintOverview["id"]
 
@@ -173,7 +173,7 @@ CONFIG[:sprint_mapping].each do |mappingName, rapidViewId|
 
     lines = BurnDownBuilder.new(reader).buildBurnDown
 
-    sprintIndex = (sprintIndex >= CONFIG[:numberOfSprintsToShow]-1) ? 0 : sprintIndex + 1
+    sprintIndex = (sprintIndex >= JIRA_CONFIG[:numberOfSprintsToShow]-1) ? 0 : sprintIndex + 1
 
     send_event(mappingName, {"more-info" => sprintName, series: lines})
   end
