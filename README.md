@@ -42,11 +42,11 @@ Create a `jira_burndown.yaml` file in the `/jobs` directory and configure it (ex
 
 ### Option 2: `jira_burndown.rb`
 
-Configure the `CONFIG` block in the ruby code.
+Configure the `JIRA_CONFIG` block in the ruby code.
 
 ## Dashboard configuration
 
-Put the following in your dashingboard.erb file to show the status:
+Put the following in your dashboard.erb file to show the status:
 
     <li data-row="1" data-col="1" data-sizex="1" data-sizey="2">
       <div data-id="burndownProject1" data-view="JiraBurdown"></div>
