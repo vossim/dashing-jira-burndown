@@ -161,20 +161,34 @@ class BurnDownBuilder
   end
 end
 
+JIRA_BURNDOWNS = Hash.new()
+
 JIRA_CONFIG[:sprint_mapping].each do |mappingName, rapidViewId|
   sprintIndex = 0
   SCHEDULER.every '10s', :first_in => 0 do
-    downloader = SprintJsonDownloader.new(JIRA_CONFIG[:jira_url], JIRA_CONFIG[:username], JIRA_CONFIG[:password])
-    sprintOverview = SprintOverviewJsonReader.new(downloader.sprintOverview(rapidViewId), JIRA_CONFIG[:numberOfSprintsToShow]).getSprintOverview(sprintIndex)
-    sprintName = sprintOverview["name"]
-    sprintId = sprintOverview["id"]
+    burndowns = JIRA_BURNDOWNS[mappingName]
+    if !burndowns.nil? && !burndowns.empty?
+      tempSprintIndex = sprintIndex
+      sprintIndex = (sprintIndex >= JIRA_CONFIG[:numberOfSprintsToShow]-1) ? 0 : sprintIndex + 1
+      send_event(mappingName, burndowns[tempSprintIndex])
+    end
+  end
+end
 
-    reader = SprintJsonReader.new(downloader.sprintBurnDown(rapidViewId, sprintId))
+JIRA_CONFIG[:sprint_mapping].each do |mappingName, rapidViewId|
+  SCHEDULER.every '15m', :first_in => 0 do
+    endNbr = JIRA_CONFIG[:numberOfSprintsToShow].to_i - 1
+    burndowns = [*0..endNbr].map do |sprintIndex|
+      downloader = SprintJsonDownloader.new(JIRA_CONFIG[:jira_url], JIRA_CONFIG[:username], JIRA_CONFIG[:password])
+      sprintOverview = SprintOverviewJsonReader.new(downloader.sprintOverview(rapidViewId), JIRA_CONFIG[:numberOfSprintsToShow]).getSprintOverview(sprintIndex)
+      sprintName = sprintOverview["name"]
+      sprintId = sprintOverview["id"]
 
-    lines = BurnDownBuilder.new(reader).buildBurnDown
-
-    sprintIndex = (sprintIndex >= JIRA_CONFIG[:numberOfSprintsToShow]-1) ? 0 : sprintIndex + 1
-
-    send_event(mappingName, {"more-info" => sprintName, series: lines})
+      reader = SprintJsonReader.new(downloader.sprintBurnDown(rapidViewId, sprintId))
+ 
+      lines = BurnDownBuilder.new(reader).buildBurnDown
+      {"more-info" => sprintName, series: lines}
+    end
+    JIRA_BURNDOWNS[mappingName] = burndowns
   end
 end
