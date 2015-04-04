@@ -49,7 +49,7 @@ Configure the `JIRA_CONFIG` block in the ruby code.
 Put the following in your dashboard.erb file to show the status:
 
     <li data-row="1" data-col="1" data-sizex="1" data-sizey="2">
-      <div data-id="burndownProject1" data-view="JiraBurdown"></div>
+      <div data-id="burndownProject1" data-view="JiraBurndown"></div>
     </li>
 
 Multiple burndowns can be added to a dashboard by repeating the snippet and changing the ```data-id```.
