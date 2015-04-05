@@ -13,7 +13,7 @@ Example of a burndown:
 
 ## Installation
 
-Put the files `jira_burndown.coffee`, `jira_burndown.html` and `jira_burndown.scss` in the `/widget/jira_burndown` directory and the files `jira_burndown.rb` and (optionally) `jira_burndown.yaml` in the `/jobs` directory
+Put the files `jira_burndown.coffee`, `jira_burndown.html` and `jira_burndown.scss` in the `/widgets/jira_burndown` directory and the files `jira_burndown.rb` and (optionally) `jira_burndown.yaml` in the `/jobs` directory
 
 This first part can also be done by using the gist: https://gist.github.com/vossim/1d2c1794fba362fd091e
 
@@ -49,7 +49,7 @@ Configure the `JIRA_CONFIG` block in the ruby code.
 Put the following in your dashboard.erb file to show the status:
 
     <li data-row="1" data-col="1" data-sizex="1" data-sizey="2">
-      <div data-id="burndownProject1" data-view="JiraBurdown"></div>
+      <div data-id="burndownProject1" data-view="JiraBurndown"></div>
     </li>
 
 Multiple burndowns can be added to a dashboard by repeating the snippet and changing the ```data-id```.
