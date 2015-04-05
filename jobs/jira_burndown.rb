@@ -140,18 +140,23 @@ class BurnDownBuilder
       {x: @rdr.sprintStart.to_i, y: @rdr.startEstimation},
       {x: @rdr.sprintEnd.to_i, y: 0}
     ]
+
+    lastEntry = Time.new.to_i
+    lastEntry = lastEntry > @rdr.sprintEnd.to_i ? @rdr.sprintEnd.to_i : lastEntry
+
     realLine = [{x: @rdr.sprintStart.to_i, y: @rdr.startEstimation}]
     realLine = @rdr.changesDuringSprint.reduce(realLine) { |res, entry|
       beforeChange = res.last[:y]
       afterChange = beforeChange + entry[1]
       res << {x: entry[0].to_i, y: beforeChange} << {x: entry[0].to_i+1, y: afterChange}
-    }
+    } << {x: lastEntry, y: realLine[-1][:y]}
+
     loggedLine = [{x: @rdr.sprintStart.to_i, y: 0}]
     loggedLine = @rdr.loggedTimeInSprint.reduce(loggedLine) { |res, entry|
       beforeChange = res.last[:y]
       afterChange = beforeChange + entry[1]
       res << {x: entry[0].to_i, y: beforeChange} << {x: entry[0].to_i+1, y: afterChange}
-    }
+    } << {x: lastEntry, y: loggedLine[-1][:y]}
 
     lines = [
       {name: "Target", color:"#959595", data: targetLine},
