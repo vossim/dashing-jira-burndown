@@ -83,7 +83,7 @@ class SprintJsonReader
             ! valueEntry["statC"].nil? ||
             ! valueEntry["column"].nil?
           }
-          [Time.at(key.to_i / 1000), timeChanges]
+          [Time.at(key.to_f / 1000), timeChanges]
         }
       end
 
@@ -104,7 +104,7 @@ class SprintJsonReader
                 hash
               end
               }.reduce(0) {|estimation, entry|
-                estimation + entry[1]["statC"]["newValue"].to_i
+                estimation + entry[1]["statC"]["newValue"].to_f
               }
             end
 
@@ -114,7 +114,7 @@ class SprintJsonReader
                 }.map { |key, value|
                   durationChange = value.reduce(0) {|res, story|
                     if ! story["statC"].nil? && story["column"].nil?
-                      res - (story["statC"]["oldValue"].to_i - story["statC"]["newValue"].to_i)
+                      res - (story["statC"]["oldValue"].to_f - story["statC"]["newValue"].to_f)
                     elsif ! @json["changes"].find_all {|key, v|
                       v.find_all {|subEntry|
                         ! subEntry["statC"].nil? && subEntry["column"].nil? && subEntry["key"] == story["key"] 
@@ -124,14 +124,14 @@ class SprintJsonReader
                           v.find_all {|subEntry|
                             ! subEntry["statC"].nil? && subEntry["column"].nil? && subEntry["key"] == story["key"] 
                             }.length > 0
-                            }[0][1][0]["statC"]["newValue"].to_i)  
+                            }[0][1][0]["statC"]["newValue"].to_f)  
                       else
-                       res
+                       res.to_f  
                      end
                    }
                    [key, durationChange]
                    }.find_all { |key, value|
-                    value != 0
+                    value != 0.0
                   }
                 end
 
@@ -141,7 +141,7 @@ class SprintJsonReader
                     }.map { |key, value|
                       timeSpent = value.reduce(0) {|res, story|
                         if ! story["statC"].nil? && story["column"].nil?
-                          res 
+                          res.to_f 
                         elsif ! @json["changes"].find_all {|key, v|
                           v.find_all {|subEntry|
                             ! subEntry["statC"].nil? && subEntry["column"].nil? && subEntry["key"] == story["key"] 
@@ -151,9 +151,9 @@ class SprintJsonReader
                               v.find_all {|subEntry|
                                 ! subEntry["statC"].nil? && subEntry["column"].nil? && subEntry["key"] == story["key"] 
                                 }.length > 0
-                                }[0][1][0]["statC"]["newValue"].to_i)  
+                                }[0][1][0]["statC"]["newValue"].to_f)  
                           else
-                           res
+                           res.to_f
                          end
                        }
                        [key, timeSpent]
@@ -168,25 +168,25 @@ class SprintJsonReader
 
                   def buildBurnDown
                     targetLine = [
-                      {x: @rdr.sprintStart.to_i, y: @rdr.startEstimation},
-                      {x: @rdr.sprintEnd.to_i, y: 0}
+                      {x: @rdr.sprintStart.to_f, y: @rdr.startEstimation},
+                      {x: @rdr.sprintEnd.to_f, y: 0}
                     ]
 
-                    lastEntry = Time.new.to_i
-                    lastEntry = lastEntry > @rdr.sprintEnd.to_i ? @rdr.sprintEnd.to_i : lastEntry
+                    lastEntry = Time.new.to_f
+                    lastEntry = lastEntry > @rdr.sprintEnd.to_f ? @rdr.sprintEnd.to_f : lastEntry
 
-                    realLine = [{x: @rdr.sprintStart.to_i, y: @rdr.startEstimation}]
+                    realLine = [{x: @rdr.sprintStart.to_f, y: @rdr.startEstimation}]
                     realLine = @rdr.changesDuringSprint.reduce(realLine) { |res, entry|
                       beforeChange = res.last[:y]
                       afterChange = beforeChange + entry[1]
-                      res << {x: entry[0].to_i, y: beforeChange} << {x: entry[0].to_i+1, y: afterChange}
+                      res << {x: entry[0].to_f, y: beforeChange} << {x: entry[0].to_f+1, y: afterChange}
                       } << {x: lastEntry, y: realLine[-1][:y]}
 
-                      loggedLine = [{x: @rdr.sprintStart.to_i, y: 0}]
+                      loggedLine = [{x: @rdr.sprintStart.to_f, y: 0}]
                       loggedLine = @rdr.loggedTimeInSprint.reduce(loggedLine) { |res, entry|
                         beforeChange = res.last[:y]
                         afterChange = beforeChange + entry[1]
-                        res << {x: entry[0].to_i, y: beforeChange} << {x: entry[0].to_i+1, y: afterChange}
+                        res << {x: entry[0].to_f, y: beforeChange} << {x: entry[0].to_f+1, y: afterChange}
                         } << {x: lastEntry, y: loggedLine[-1][:y]}
 
                         lines = [
