@@ -89,7 +89,7 @@ class SprintJsonReader
 
       def startEstimation
         jsonChangesByDateTime.find_all { |key, value|
-          key < sprintStart
+          key < sprintStart && ! value[0]["statC"].nil?
           }.flat_map { |key, value|
             value.map { |singleStory|
               [key, singleStory]
