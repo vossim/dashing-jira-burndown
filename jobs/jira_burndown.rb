@@ -26,7 +26,8 @@ class SprintJsonDownloader
     @password = password
   end
 
-  private def downloadJson(url)
+  # private 
+  def downloadJson(url)
     uri = URI.parse(url)
     http = Net::HTTP.new(uri.host, uri.port)
     http.use_ssl = uri.scheme == 'https'
@@ -74,19 +75,21 @@ class SprintJsonReader
   def jsonChangesByDateTime
     @json["changes"].find_all {|key, value|
       value.find_all {|subEntry|
-        ! subEntry["timeC"].nil?
+        ! subEntry["statC"].nil? ||
+        ! subEntry["column"].nil? 
       }.length > 0
     }.map{ |key, value|
       timeChanges = value.find_all { |valueEntry|
-        ! valueEntry["timeC"].nil?
+        ! valueEntry["statC"].nil? ||
+        ! valueEntry["column"].nil?
       }
-      [Time.at(key.to_i / 1000), timeChanges]
+      [Time.at(key.to_f / 1000), timeChanges]
     }
   end
 
   def startEstimation
     jsonChangesByDateTime.find_all { |key, value|
-      key < sprintStart
+      key < sprintStart && ! value[0]["statC"].nil?
     }.flat_map { |key, value|
       value.map { |singleStory|
         [key, singleStory]
@@ -101,20 +104,34 @@ class SprintJsonReader
         hash
       end
     }.reduce(0) {|estimation, entry|
-      estimation + entry[1]["timeC"]["newEstimate"].to_i
+      estimation + entry[1]["statC"]["newValue"].to_f
     }
   end
 
   def changesDuringSprint
     jsonChangesByDateTime.find_all { |key, value|
-      key > sprintStart && key < sprintEnd
+      key > sprintStart && key < sprintEnd 
     }.map { |key, value|
       durationChange = value.reduce(0) {|res, story|
-        res - (story["timeC"]["oldEstimate"].to_i - story["timeC"]["newEstimate"].to_i)
+        if ! story["statC"].nil? && story["column"].nil?
+            res - (story["statC"]["oldValue"].to_f - story["statC"]["newValue"].to_f)
+        elsif ! @json["changes"].find_all {|key, v|
+            v.find_all {|subEntry|
+            ! subEntry["statC"].nil? && subEntry["column"].nil? && subEntry["key"] == story["key"] 
+          }.length > 0
+          }.empty?
+          res - (@json["changes"].find_all {|key, v|
+          v.find_all {|subEntry|
+          ! subEntry["statC"].nil? && subEntry["column"].nil? && subEntry["key"] == story["key"] 
+          }.length > 0
+          }[0][1][0]["statC"]["newValue"].to_f)  
+        else
+          res.to_f  
+        end
       }
       [key, durationChange]
     }.find_all { |key, value|
-      value != 0
+      value != 0.0
     }
   end
 
@@ -123,7 +140,21 @@ class SprintJsonReader
       key > sprintStart && key < sprintEnd
     }.map { |key, value|
       timeSpent = value.reduce(0) {|res, story|
-        res + story["timeC"]["timeSpent"].to_i
+        if ! story["statC"].nil? && story["column"].nil?
+          res.to_f 
+        elsif ! @json["changes"].find_all {|key, v|
+          v.find_all {|subEntry|
+            ! subEntry["statC"].nil? && subEntry["column"].nil? && subEntry["key"] == story["key"] 
+          }.length > 0
+          }.empty?
+            res + (@json["changes"].find_all {|key, v|
+              v.find_all {|subEntry|
+                ! subEntry["statC"].nil? && subEntry["column"].nil? && subEntry["key"] == story["key"] 
+              }.length > 0
+            }[0][1][0]["statC"]["newValue"].to_f)  
+        else
+          res.to_f
+        end
       }
       [key, timeSpent]
     }
@@ -137,27 +168,23 @@ class BurnDownBuilder
 
   def buildBurnDown
     targetLine = [
-      {x: @rdr.sprintStart.to_i, y: @rdr.startEstimation},
-      {x: @rdr.sprintEnd.to_i, y: 0}
+      {x: @rdr.sprintStart.to_f, y: @rdr.startEstimation},
+      {x: @rdr.sprintEnd.to_f, y: 0}
     ]
-
-    lastEntry = Time.new.to_i
-    lastEntry = lastEntry > @rdr.sprintEnd.to_i ? @rdr.sprintEnd.to_i : lastEntry
-
-    realLine = [{x: @rdr.sprintStart.to_i, y: @rdr.startEstimation}]
+    lastEntry = Time.new.to_f
+    lastEntry = lastEntry > @rdr.sprintEnd.to_f ? @rdr.sprintEnd.to_f : lastEntry
+    realLine = [{x: @rdr.sprintStart.to_f, y: @rdr.startEstimation}]
     realLine = @rdr.changesDuringSprint.reduce(realLine) { |res, entry|
       beforeChange = res.last[:y]
       afterChange = beforeChange + entry[1]
-      res << {x: entry[0].to_i, y: beforeChange} << {x: entry[0].to_i+1, y: afterChange}
+      res << {x: entry[0].to_f, y: beforeChange} << {x: entry[0].to_f+1, y: afterChange}
     } << {x: lastEntry, y: realLine[-1][:y]}
-
-    loggedLine = [{x: @rdr.sprintStart.to_i, y: 0}]
+    loggedLine = [{x: @rdr.sprintStart.to_f, y: 0}]
     loggedLine = @rdr.loggedTimeInSprint.reduce(loggedLine) { |res, entry|
       beforeChange = res.last[:y]
       afterChange = beforeChange + entry[1]
-      res << {x: entry[0].to_i, y: beforeChange} << {x: entry[0].to_i+1, y: afterChange}
+      res << {x: entry[0].to_f, y: beforeChange} << {x: entry[0].to_f+1, y: afterChange}
     } << {x: lastEntry, y: loggedLine[-1][:y]}
-
     lines = [
       {name: "Target", color:"#959595", data: targetLine},
       {name: "Logged", color: "#10cd10", data: loggedLine},
@@ -181,7 +208,7 @@ JIRA_CONFIG[:sprint_mapping].each do |mappingName, rapidViewId|
 end
 
 JIRA_CONFIG[:sprint_mapping].each do |mappingName, rapidViewId|
-  SCHEDULER.every '15m', :first_in => 0 do
+  SCHEDULER.every '10s', :first_in => 0 do
     endNbr = JIRA_CONFIG[:numberOfSprintsToShow].to_i - 1
     burndowns = [*0..endNbr].map do |sprintIndex|
       downloader = SprintJsonDownloader.new(JIRA_CONFIG[:jira_url], JIRA_CONFIG[:username], JIRA_CONFIG[:password])
@@ -190,7 +217,7 @@ JIRA_CONFIG[:sprint_mapping].each do |mappingName, rapidViewId|
       sprintId = sprintOverview["id"]
 
       reader = SprintJsonReader.new(downloader.sprintBurnDown(rapidViewId, sprintId))
- 
+
       lines = BurnDownBuilder.new(reader).buildBurnDown
       {"more-info" => sprintName, series: lines}
     end
