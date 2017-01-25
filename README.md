@@ -13,7 +13,7 @@ Example of a burndown:
 
 ## Installation
 
-Put the files `jira_burndown.coffee`, `jira_burndown.html` and `jira_burndown.scss` in the `/widget/jira_burndown` directory and the files `jira_burndown.rb` and (optionally) `jira_burndown.yaml` in the `/jobs` directory
+Put the files `jira_burndown.coffee`, `jira_burndown.html` and `jira_burndown.scss` in the `/widgets/jira_burndown` directory and the files `jira_burndown.rb` and (optionally) `jira_burndown.yaml` in the `/jobs` directory
 
 This first part can also be done by using the gist: https://gist.github.com/vossim/1d2c1794fba362fd091e
 
